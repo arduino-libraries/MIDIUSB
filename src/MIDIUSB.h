@@ -18,8 +18,26 @@ typedef struct
 	uint8_t byte3;
 }midiEventPacket_t;
 
+#if !defined(ARDUINO_ARCH_SAM)
+
 #define EP_TYPE_BULK_OUT_MIDI		EP_TYPE_BULK_OUT
 #define EP_TYPE_BULK_IN_MIDI		EP_TYPE_BULK_IN
+
+#else
+
+#define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
+									UOTGHS_DEVEPTCFG_EPDIR_IN |         \
+									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
+									UOTGHS_DEVEPTCFG_EPBK_1_BANK |      \
+									UOTGHS_DEVEPTCFG_NBTRANS_1_TRANS |  \
+									UOTGHS_DEVEPTCFG_ALLOC)
+
+#define EP_TYPE_BULK_OUT_MIDI       (UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
+									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
+									UOTGHS_DEVEPTCFG_EPBK_1_BANK |      \
+									UOTGHS_DEVEPTCFG_NBTRANS_1_TRANS |  \
+									UOTGHS_DEVEPTCFG_ALLOC)
+#endif
 
 class MIDI_
 {
@@ -47,6 +65,8 @@ extern MIDI_ MidiUSB;
 #define MIDI_STREAMING							0x3
 #define MIDI_JACK_EMD							0x01
 #define MIDI_JACK_EXT							0X02
+
+#pragma pack(1)
 
 typedef struct
 {
@@ -150,6 +170,8 @@ typedef struct
 
 #define D_CDCCS(_subtype,_d0,_d1)	{ 5, 0x24, _subtype, _d0, _d1 }
 #define D_CDCCS4(_subtype,_d0)		{ 4, 0x24, _subtype, _d0 }
+
+#pragma pack()
 
 #define WEAK __attribute__ ((weak))
 

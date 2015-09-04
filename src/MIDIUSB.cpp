@@ -14,17 +14,32 @@
 ** SOFTWARE.
 */
 
-#include "PluggableUSB.h"
 #include "MIDIUSB.h"
 
 #define MIDI_BUFFER_SIZE	16
 
+#if defined(ARDUINO_ARCH_AVR)
 
-static u8 MIDI_AC_INTERFACE;	// MIDI AC Interface
-static u8 MIDI_INTERFACE;
-static u8 MIDI_FIRST_ENDPOINT;
-static u8 MIDI_ENDPOINT_OUT;
-static u8 MIDI_ENDPOINT_IN;
+#include "PluggableUSB.h"
+#define EPTYPE_DESCRIPTOR_SIZE uint8_t
+
+#else
+
+#include "USB/PluggableUSB.h"
+#define USB_SendControl 	USBD_SendControl
+#define USB_Available 		USBD_Available
+#define USB_Recv 			USBD_Recv
+#define USB_Send 			USBD_Send
+#define USB_Flush 			USBD_Flush
+#define EPTYPE_DESCRIPTOR_SIZE uint32_t
+
+#endif
+
+static uint8_t MIDI_AC_INTERFACE;	// MIDI AC Interface
+static uint8_t MIDI_INTERFACE;
+static uint8_t MIDI_FIRST_ENDPOINT;
+static uint8_t MIDI_ENDPOINT_OUT;
+static uint8_t MIDI_ENDPOINT_IN;
 
 #define MIDI_RX MIDI_ENDPOINT_OUT
 #define MIDI_TX MIDI_ENDPOINT_IN
@@ -45,7 +60,8 @@ int MIDI_GetInterface(uint8_t* interfaceNum)
 	interfaceNum[0] += 2;	// uses 2
 	return USB_SendControl(0,&_midiInterface,sizeof(_midiInterface));
 }
-bool MIDI_Setup(USBSetup& setup, u8 i)
+
+bool MIDI_Setup(USBSetup& setup, uint8_t i)
 {
 	//Support requests here if needed. Typically these are optional
 	return false;
@@ -58,16 +74,6 @@ int MIDI_GetDescriptor(int8_t t)
 
 void MIDI_::accept(void)
 {
-	static uint32_t mguard = 0;
-
-	// // synchronized access to guard
-	// do {
-	// 	if (__LDREXW(&mguard) != 0) {
-	// 		__CLREX();
-	// 		return;  // busy
-	// 	}
-	// } while (__STREXW(1, &mguard) != 0); // retry until write succeed
-
 	ring_bufferMIDI *buffer = &midi_rx_buffer;
 	uint32_t i = (uint32_t)(buffer->head+1) % MIDI_BUFFER_SIZE;
 
@@ -79,8 +85,10 @@ void MIDI_::accept(void)
 		int c;
 		midiEventPacket_t event;
 		if (!USB_Available(MIDI_RX)) {
-			//udd_ack_fifocon(MIDI_RX);
-			break;
+#if defined(ARDUINO_ARCH_SAM)
+			udd_ack_fifocon(MIDI_RX);
+#endif
+			//break;
 		}
 		c = USB_Recv(MIDI_RX, &event, sizeof(event) );
 
@@ -92,9 +100,6 @@ void MIDI_::accept(void)
 
 		i = (i + 1) % MIDI_BUFFER_SIZE;
 	}
-
-	// release the guard
-	mguard = 0;
 }
 
 uint32_t MIDI_::available(void)
@@ -170,7 +175,7 @@ void MIDI_::sendMIDI(midiEventPacket_t event)
 
 MIDI_::MIDI_(void)
 {
-	static uint8_t endpointType[2];
+	static EPTYPE_DESCRIPTOR_SIZE endpointType[2];
 
 	endpointType[0] = EP_TYPE_BULK_OUT_MIDI;	// MIDI_ENDPOINT_OUT
 	endpointType[1] = EP_TYPE_BULK_IN_MIDI;		// MIDI_ENDPOINT_IN

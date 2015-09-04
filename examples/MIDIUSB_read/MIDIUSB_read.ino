@@ -25,7 +25,7 @@ void noteOff(byte channel, byte pitch, byte velocity) {
 }
 
 void setup() {
-
+  Serial.begin(115200);
 }
 
 // First parameter is the event type (0x0B = control change).
@@ -39,14 +39,20 @@ void controlChange(byte channel, byte control, byte value) {
 }
 
 void loop() {
-  Serial.println("Sending note on");
-  noteOn(0, 48, 64);   // Channel 0, middle C, normal velocity
-  MidiUSB.flush();
-  delay(500);
-  Serial.println("Sending note off");
-  noteOff(0, 48, 64);  // Channel 0, middle C, normal velocity
-  MidiUSB.flush();
-  delay(1500);
-
-  // controlChange(0, 10, 65); // Set the value of controller 10 on channel 0 to 65
+  MidiUSB.accept();
+  delayMicroseconds(1);
+  midiEventPacket_t rx;
+  do {
+    rx = MidiUSB.read();
+    if (rx.header != 0) {
+      Serial.print("Received: ");
+      Serial.print(rx.header, HEX);
+      Serial.print("-");
+      Serial.print(rx.byte1, HEX);
+      Serial.print("-");
+      Serial.print(rx.byte2, HEX);
+      Serial.print("-");
+      Serial.println(rx.byte3, HEX);
+    }
+  } while (rx.header != 0);
 }

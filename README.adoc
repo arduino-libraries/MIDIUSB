@@ -1,9 +1,40 @@
 = MIDIUSB Library for Arduino =
 
-This library allows an Arduino board with USB capabilites to act as a MIDI instrument over USB. The library is based on PluggableUSB, so is only compatible with IDE 1.6.6 and nightly builds (AVR core > 1.6.8)
+This library allows an Arduino board with USB capabilites to act as a MIDI instrument over USB. The library is based on PluggableUSB, so is only compatible with IDE 1.6.6 and nightly builds (AVR core > 1.6.8, SAM core > 1.6.4, SAMD core > 1.6.1)
 
 For more information about this library please visit us at
 http://www.arduino.cc/en/Reference/MIDIUSB
+
+== Test procedure (Linux) ==
+
+Load the correct driver (`sudo modprobe snd_seq_midi`)
+
+Flash the board with `MIDIUSB_loop` example, then execute `aseqdump -l`; the output will be something similar to
+```bash
+Port    Client name                      Port name
+  0:0    System                           Timer
+  0:1    System                           Announce
+ 14:0    Midi Through                     Midi Through Port-0
+ 20:0    Arduino Micro                    Arduino Micro MIDI 1
+```
+Port `20` is the one we'll use in the following examples.
+
+Start `fluidsynth` inside a shell with a soundbank 
+```bash
+fluidsynth --server --audio-driver=alsa -udio.alsa.device=hw:0 ~/Synth.SF2
+```
+
+In another shell, execute 
+```bash
+aconnect 20 128
+```
+to connect our MIDI device with fluidsynth
+
+Then, execute
+```bash
+aplaymidi  --port=20:0 ~/some_midi_file.mid
+```
+and the file will be played after a complete roundtrip to the board.
 
 == License ==
 

@@ -26,12 +26,23 @@
 #else
 
 #include "USB/PluggableUSB.h"
+#define EPTYPE_DESCRIPTOR_SIZE uint32_t
+
+#if defined(ARDUINO_ARCH_SAM)
 #define USB_SendControl 	USBD_SendControl
 #define USB_Available 		USBD_Available
 #define USB_Recv 			USBD_Recv
 #define USB_Send 			USBD_Send
 #define USB_Flush 			USBD_Flush
-#define EPTYPE_DESCRIPTOR_SIZE uint32_t
+#endif
+
+#if defined(__SAMD21G18A__)
+#define USB_SendControl		USBDevice.sendControl
+#define USB_Available		USBDevice.available
+#define USB_Recv 			USBDevice.recv
+#define USB_Send 			USBDevice.send
+#define USB_Flush 			USBDevice.flush
+#endif
 
 #endif
 

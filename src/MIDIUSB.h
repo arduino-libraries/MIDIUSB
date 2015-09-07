@@ -18,13 +18,12 @@ typedef struct
 	uint8_t byte3;
 }midiEventPacket_t;
 
-#if !defined(ARDUINO_ARCH_SAM)
-
+#if defined(ARDUINO_ARCH_AVR)
 #define EP_TYPE_BULK_OUT_MIDI		EP_TYPE_BULK_OUT
 #define EP_TYPE_BULK_IN_MIDI		EP_TYPE_BULK_IN
+#endif
 
-#else
-
+#if defined(ARDUINO_ARCH_SAM)
 #define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
 									UOTGHS_DEVEPTCFG_EPDIR_IN |         \
 									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
@@ -37,6 +36,11 @@ typedef struct
 									UOTGHS_DEVEPTCFG_EPBK_1_BANK |      \
 									UOTGHS_DEVEPTCFG_NBTRANS_1_TRANS |  \
 									UOTGHS_DEVEPTCFG_ALLOC)
+#endif
+
+#if defined(__SAMD21G18A__)
+#define EP_TYPE_BULK_IN_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_IN(0);
+#define EP_TYPE_BULK_OUT_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_OUT(0);
 #endif
 
 class MIDI_

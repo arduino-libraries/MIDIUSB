@@ -39,8 +39,6 @@ void controlChange(byte channel, byte control, byte value) {
 }
 
 void loop() {
-  MidiUSB.accept();
-  delayMicroseconds(1);
   midiEventPacket_t rx;
   do {
     rx = MidiUSB.read();

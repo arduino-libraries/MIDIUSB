@@ -16,7 +16,7 @@
 
 #include "MIDIUSB.h"
 
-#define MIDI_BUFFER_SIZE	16
+#define MIDI_BUFFER_SIZE	64
 
 #if defined(ARDUINO_ARCH_AVR)
 
@@ -125,24 +125,23 @@ midiEventPacket_t MIDI_::read(void)
 {
 	ring_bufferMIDI *buffer = &midi_rx_buffer;
 	midiEventPacket_t c = buffer->midiEvent[buffer->tail];
-	c.header = 0;
-	c.byte1 = 0;
-	c.byte2 = 0;
-	c.byte3 = 0;
+
+	if (USB_Available(MIDI_RX)) {
+		accept();
+		c = buffer->midiEvent[buffer->tail];
+	} else {
+		c.header = 0;
+		c.byte1 = 0;
+		c.byte2 = 0;
+		c.byte3 = 0;
+	}
 
 	// if the head isn't ahead of the tail, we don't have any characters
-	if (buffer->head == buffer->tail)
+	if (buffer->head != buffer->tail)
 	{
-		return c;
-	}
-	else
-	{
-		midiEventPacket_t c = buffer->midiEvent[buffer->tail];
 		buffer->tail = (uint32_t)(buffer->tail + 1) % MIDI_BUFFER_SIZE;
-		if (USB_Available(MIDI_RX))
-			accept();
-		return c;
 	}
+	return c;
 }
 
 void MIDI_::flush(void)

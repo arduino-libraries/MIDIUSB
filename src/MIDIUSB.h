@@ -47,13 +47,14 @@ class MIDI_
 {
 // private:
 // 	RingBuffer *_midi_rx_buffer;
+private:
+	void accept(void);
 public:
 	MIDI_(void);
 
 	int8_t begin();
 
 	uint32_t available(void);
-	void accept(void);
 	midiEventPacket_t read(void);
 	void flush(void);
 	void sendMIDI(midiEventPacket_t event);

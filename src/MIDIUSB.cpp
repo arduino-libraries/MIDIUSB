@@ -83,6 +83,12 @@ int MIDI_GetDescriptor(int8_t t)
 	return 0;
 }
 
+char* MIDI_GetShortName()
+{
+	static char* name = "MI";
+	return name;
+}
+
 void MIDI_::accept(void)
 {
 	ring_bufferMIDI *buffer = &midi_rx_buffer;
@@ -194,6 +200,7 @@ MIDI_::MIDI_(void)
 		.setup = &MIDI_Setup,
 		.getInterface = &MIDI_GetInterface,
 		.getDescriptor = &MIDI_GetDescriptor,
+		.getShortName = &MIDI_GetShortName,
 		.numEndpoints = 2,
 		.numInterfaces = 2,
 		.endpointType = endpointType,

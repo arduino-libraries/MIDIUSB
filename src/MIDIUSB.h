@@ -19,11 +19,24 @@ typedef struct
 }midiEventPacket_t;
 
 #if defined(ARDUINO_ARCH_AVR)
+
+#include "PluggableUSB.h"
+#define EPTYPE_DESCRIPTOR_SIZE uint8_t
 #define EP_TYPE_BULK_OUT_MIDI		EP_TYPE_BULK_OUT
 #define EP_TYPE_BULK_IN_MIDI		EP_TYPE_BULK_IN
-#endif
+
+#else
+
+#include "USB/PluggableUSB.h"
+#define EPTYPE_DESCRIPTOR_SIZE uint32_t
 
 #if defined(ARDUINO_ARCH_SAM)
+#define USB_SendControl 	USBD_SendControl
+#define USB_Available 		USBD_Available
+#define USB_Recv 			USBD_Recv
+#define USB_Send 			USBD_Send
+#define USB_Flush 			USBD_Flush
+
 #define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
 									UOTGHS_DEVEPTCFG_EPDIR_IN |         \
 									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
@@ -39,29 +52,17 @@ typedef struct
 #endif
 
 #if defined(__SAMD21G18A__)
+#define USB_SendControl		USBDevice.sendControl
+#define USB_Available		USBDevice.available
+#define USB_Recv 			USBDevice.recv
+#define USB_Send 			USBDevice.send
+#define USB_Flush 			USBDevice.flush
+
 #define EP_TYPE_BULK_IN_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_IN(0);
 #define EP_TYPE_BULK_OUT_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_OUT(0);
+
 #endif
-
-class MIDI_
-{
-// private:
-// 	RingBuffer *_midi_rx_buffer;
-private:
-	void accept(void);
-public:
-	MIDI_(void);
-
-	int8_t begin();
-
-	uint32_t available(void);
-	midiEventPacket_t read(void);
-	void flush(void);
-	void sendMIDI(midiEventPacket_t event);
-	size_t write(const uint8_t *buffer, size_t size);
-	operator bool();
-};
-extern MIDI_ MidiUSB;
+#endif
 
 #define MIDI_AUDIO								0x01
 #define MIDI_AUDIO_CONTROL						0x01
@@ -71,7 +72,7 @@ extern MIDI_ MidiUSB;
 #define MIDI_JACK_EMD							0x01
 #define MIDI_JACK_EXT							0X02
 
-#pragma pack(1)
+_Pragma("pack(1)")
 
 typedef struct
 {
@@ -176,9 +177,35 @@ typedef struct
 #define D_CDCCS(_subtype,_d0,_d1)	{ 5, 0x24, _subtype, _d0, _d1 }
 #define D_CDCCS4(_subtype,_d0)		{ 4, 0x24, _subtype, _d0 }
 
-#pragma pack()
+_Pragma("pack()")
 
 #define WEAK __attribute__ ((weak))
 
-#endif
-#endif
+class MIDI_ : public PUSBListNode
+{
+// private:
+// 	RingBuffer *_midi_rx_buffer;
+private:
+	void accept(void);
+	EPTYPE_DESCRIPTOR_SIZE epType[2];
+	MIDIDescriptor _midiInterface;
+
+protected:
+  // Implementation of the PUSBListNode
+  int getInterface(uint8_t* interfaceNum);
+  int getDescriptor(int8_t t);
+  bool setup(USBSetup& setup, uint8_t i);
+
+public:
+	MIDI_(void);
+	uint32_t available(void);
+	midiEventPacket_t read(void);
+	void flush(void);
+	void sendMIDI(midiEventPacket_t event);
+	size_t write(const uint8_t *buffer, size_t size);
+	operator bool();
+};
+extern MIDI_ MidiUSB;
+
+#endif	/* USBCON */
+#endif	/* MIDIUSB_h */

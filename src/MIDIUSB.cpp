@@ -181,5 +181,5 @@ MIDI_::MIDI_(void) : PUSBListNode(2, 2, epType)
 {
 	epType[0] = EP_TYPE_BULK_OUT_MIDI;	// MIDI_ENDPOINT_OUT
 	epType[1] = EP_TYPE_BULK_IN_MIDI;		// MIDI_ENDPOINT_IN
-	PluggableUSB.plug(this);
+	PluggableUSB().plug(this);
 }

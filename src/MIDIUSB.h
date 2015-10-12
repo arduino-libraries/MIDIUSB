@@ -21,14 +21,16 @@ typedef struct
 #if defined(ARDUINO_ARCH_AVR)
 
 #include "PluggableUSB.h"
-#define EPTYPE_DESCRIPTOR_SIZE uint8_t
+#define EPTYPE_DESCRIPTOR_SIZE		uint8_t
 #define EP_TYPE_BULK_OUT_MIDI		EP_TYPE_BULK_OUT
 #define EP_TYPE_BULK_IN_MIDI		EP_TYPE_BULK_IN
+#define MIDI_BUFFER_SIZE			64
 
 #else
 
 #include "USB/PluggableUSB.h"
-#define EPTYPE_DESCRIPTOR_SIZE uint32_t
+#define EPTYPE_DESCRIPTOR_SIZE		uint32_t
+#define MIDI_BUFFER_SIZE			512
 
 #if defined(ARDUINO_ARCH_SAM)
 #define USB_SendControl 	USBD_SendControl
@@ -37,14 +39,14 @@ typedef struct
 #define USB_Send 			USBD_Send
 #define USB_Flush 			USBD_Flush
 
-#define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
+#define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_512_BYTE | \
 									UOTGHS_DEVEPTCFG_EPDIR_IN |         \
 									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
 									UOTGHS_DEVEPTCFG_EPBK_1_BANK |      \
 									UOTGHS_DEVEPTCFG_NBTRANS_1_TRANS |  \
 									UOTGHS_DEVEPTCFG_ALLOC)
 
-#define EP_TYPE_BULK_OUT_MIDI       (UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE | \
+#define EP_TYPE_BULK_OUT_MIDI       (UOTGHS_DEVEPTCFG_EPSIZE_512_BYTE | \
 									UOTGHS_DEVEPTCFG_EPTYPE_BLK |       \
 									UOTGHS_DEVEPTCFG_EPBK_1_BANK |      \
 									UOTGHS_DEVEPTCFG_NBTRANS_1_TRANS |  \
@@ -157,7 +159,7 @@ typedef struct
 } MIDIDescriptor;
 
 #define D_AC_INTERFACE(_streamingInterfaces, _MIDIInterface) \
-	{ 9, MIDI_CS_INTERFACE, 0x1, 0x0100, 0x0009, _streamingInterfaces, _MIDIInterface }
+	{ 9, MIDI_CS_INTERFACE, 0x1, 0x0100, 0x0009, _streamingInterfaces, (uint8_t)(_MIDIInterface) }
 
 #define D_AS_INTERFACE \
 	{ 0x7, MIDI_CS_INTERFACE, 0x01,0x0100, 0x0041}
@@ -181,20 +183,19 @@ _Pragma("pack()")
 
 #define WEAK __attribute__ ((weak))
 
-class MIDI_ : public PUSBListNode
+class MIDI_ : public PluggableUSBModule
 {
 // private:
 // 	RingBuffer *_midi_rx_buffer;
 private:
 	void accept(void);
 	EPTYPE_DESCRIPTOR_SIZE epType[2];
-	MIDIDescriptor _midiInterface;
 
 protected:
   // Implementation of the PUSBListNode
   int getInterface(uint8_t* interfaceNum);
-  int getDescriptor(int8_t t);
-  bool setup(USBSetup& setup, uint8_t i);
+  int getDescriptor(USBSetup& setup);
+  bool setup(USBSetup& setup);
 
 public:
 	MIDI_(void);

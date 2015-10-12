@@ -16,13 +16,11 @@
 
 #include "MIDIUSB.h"
 
-#define MIDI_BUFFER_SIZE	64
-
-#define MIDI_AC_INTERFACE 	interface()	// MIDI AC Interface
-#define MIDI_INTERFACE 		interface()+1
-#define MIDI_FIRST_ENDPOINT endpoint()
-#define MIDI_ENDPOINT_OUT	endpoint()
-#define MIDI_ENDPOINT_IN	endpoint()+1
+#define MIDI_AC_INTERFACE 	pluggedInterface	// MIDI AC Interface
+#define MIDI_INTERFACE 		pluggedInterface+1
+#define MIDI_FIRST_ENDPOINT pluggedEndpoint
+#define MIDI_ENDPOINT_OUT	pluggedEndpoint
+#define MIDI_ENDPOINT_IN	pluggedEndpoint+1
 
 #define MIDI_RX MIDI_ENDPOINT_OUT
 #define MIDI_TX MIDI_ENDPOINT_IN
@@ -40,8 +38,8 @@ MIDI_ MidiUSB;
 
 int MIDI_::getInterface(uint8_t* interfaceNum)
 {
-	interfaceNum[0] += 2;	// uses 2
-	_midiInterface =
+	interfaceNum[0] += 2;	// uses 2 interfaces
+	MIDIDescriptor _midiInterface =
 	{
 		D_IAD(MIDI_AC_INTERFACE, 2, MIDI_AUDIO, MIDI_AUDIO_CONTROL, 0),
 		D_INTERFACE(MIDI_AC_INTERFACE,0,MIDI_AUDIO,MIDI_AUDIO_CONTROL,0),
@@ -52,28 +50,28 @@ int MIDI_::getInterface(uint8_t* interfaceNum)
 		D_MIDI_INJACK(MIDI_JACK_EXT, 0x2),
 		D_MIDI_OUTJACK(MIDI_JACK_EMD, 0x3, 1, 2, 1),
 		D_MIDI_OUTJACK(MIDI_JACK_EXT, 0x4, 1, 1, 1),
-		D_MIDI_JACK_EP(USB_ENDPOINT_OUT(MIDI_ENDPOINT_OUT),USB_ENDPOINT_TYPE_BULK,64),
+		D_MIDI_JACK_EP(USB_ENDPOINT_OUT(MIDI_ENDPOINT_OUT),USB_ENDPOINT_TYPE_BULK,MIDI_BUFFER_SIZE),
 		D_MIDI_AC_JACK_EP(1, 1),
-		D_MIDI_JACK_EP(USB_ENDPOINT_IN(MIDI_ENDPOINT_IN),USB_ENDPOINT_TYPE_BULK,64),
+		D_MIDI_JACK_EP(USB_ENDPOINT_IN(MIDI_ENDPOINT_IN),USB_ENDPOINT_TYPE_BULK,MIDI_BUFFER_SIZE),
 		D_MIDI_AC_JACK_EP (1, 3)
 	};
-	return USB_SendControl(0,&_midiInterface,sizeof(_midiInterface));
+	return USB_SendControl(0, &_midiInterface, sizeof(_midiInterface));
 }
 
-bool MIDI_::setup(USBSetup& setup, uint8_t i)
+bool MIDI_::setup(USBSetup& setup __attribute__((unused)))
 {
 	//Support requests here if needed. Typically these are optional
 	return false;
 }
 
-int MIDI_::getDescriptor(int8_t t)
+int MIDI_::getDescriptor(USBSetup& setup __attribute__((unused)))
 {
 	return 0;
 }
 
 char* MIDI_GetShortName()
 {
-	static char* name = "MI";
+	static char* name = "MIDI";
 	return name;
 }
 
@@ -177,7 +175,7 @@ void MIDI_::sendMIDI(midiEventPacket_t event)
 	write(data, 4);
 }
 
-MIDI_::MIDI_(void) : PUSBListNode(2, 2, epType)
+MIDI_::MIDI_(void) : PluggableUSBModule(2, 2, epType)
 {
 	epType[0] = EP_TYPE_BULK_OUT_MIDI;	// MIDI_ENDPOINT_OUT
 	epType[1] = EP_TYPE_BULK_IN_MIDI;		// MIDI_ENDPOINT_IN

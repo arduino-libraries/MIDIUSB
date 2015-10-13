@@ -69,10 +69,10 @@ int MIDI_::getDescriptor(USBSetup& setup __attribute__((unused)))
 	return 0;
 }
 
-char* MIDI_GetShortName()
+uint8_t MIDI_::getShortName(char* name)
 {
-	static char* name = "MIDI";
-	return name;
+	memcpy(name, "MIDI", 4);
+	return 4;
 }
 
 void MIDI_::accept(void)

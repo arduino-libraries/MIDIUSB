@@ -196,6 +196,7 @@ protected:
   int getInterface(uint8_t* interfaceNum);
   int getDescriptor(USBSetup& setup);
   bool setup(USBSetup& setup);
+  char* getShortName(void);
 
 public:
 	MIDI_(void);

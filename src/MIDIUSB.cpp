@@ -16,41 +16,11 @@
 
 #include "MIDIUSB.h"
 
-#define MIDI_BUFFER_SIZE	64
-
-#if defined(ARDUINO_ARCH_AVR)
-
-#include "PluggableUSB.h"
-#define EPTYPE_DESCRIPTOR_SIZE uint8_t
-
-#else
-
-#include "USB/PluggableUSB.h"
-#define EPTYPE_DESCRIPTOR_SIZE uint32_t
-
-#if defined(ARDUINO_ARCH_SAM)
-#define USB_SendControl 	USBD_SendControl
-#define USB_Available 		USBD_Available
-#define USB_Recv 			USBD_Recv
-#define USB_Send 			USBD_Send
-#define USB_Flush 			USBD_Flush
-#endif
-
-#if defined(__SAMD21G18A__)
-#define USB_SendControl		USBDevice.sendControl
-#define USB_Available		USBDevice.available
-#define USB_Recv 			USBDevice.recv
-#define USB_Send 			USBDevice.send
-#define USB_Flush 			USBDevice.flush
-#endif
-
-#endif
-
-static uint8_t MIDI_AC_INTERFACE;	// MIDI AC Interface
-static uint8_t MIDI_INTERFACE;
-static uint8_t MIDI_FIRST_ENDPOINT;
-static uint8_t MIDI_ENDPOINT_OUT;
-static uint8_t MIDI_ENDPOINT_IN;
+#define MIDI_AC_INTERFACE 	pluggedInterface	// MIDI AC Interface
+#define MIDI_INTERFACE 		pluggedInterface+1
+#define MIDI_FIRST_ENDPOINT pluggedEndpoint
+#define MIDI_ENDPOINT_OUT	pluggedEndpoint
+#define MIDI_ENDPOINT_IN	pluggedEndpoint+1
 
 #define MIDI_RX MIDI_ENDPOINT_OUT
 #define MIDI_TX MIDI_ENDPOINT_IN
@@ -64,23 +34,45 @@ struct ring_bufferMIDI
 
 ring_bufferMIDI midi_rx_buffer = {{0,0,0,0 }, 0, 0};
 
-static MIDIDescriptor _midiInterface;
+MIDI_ MidiUSB;
 
-int MIDI_GetInterface(uint8_t* interfaceNum)
+int MIDI_::getInterface(uint8_t* interfaceNum)
 {
-	interfaceNum[0] += 2;	// uses 2
-	return USB_SendControl(0,&_midiInterface,sizeof(_midiInterface));
+	interfaceNum[0] += 2;	// uses 2 interfaces
+	MIDIDescriptor _midiInterface =
+	{
+		D_IAD(MIDI_AC_INTERFACE, 2, MIDI_AUDIO, MIDI_AUDIO_CONTROL, 0),
+		D_INTERFACE(MIDI_AC_INTERFACE,0,MIDI_AUDIO,MIDI_AUDIO_CONTROL,0),
+		D_AC_INTERFACE(0x1, MIDI_INTERFACE),
+		D_INTERFACE(MIDI_INTERFACE,2, MIDI_AUDIO,MIDI_STREAMING,0),
+		D_AS_INTERFACE,
+		D_MIDI_INJACK(MIDI_JACK_EMD, 0x1),
+		D_MIDI_INJACK(MIDI_JACK_EXT, 0x2),
+		D_MIDI_OUTJACK(MIDI_JACK_EMD, 0x3, 1, 2, 1),
+		D_MIDI_OUTJACK(MIDI_JACK_EXT, 0x4, 1, 1, 1),
+		D_MIDI_JACK_EP(USB_ENDPOINT_OUT(MIDI_ENDPOINT_OUT),USB_ENDPOINT_TYPE_BULK,MIDI_BUFFER_SIZE),
+		D_MIDI_AC_JACK_EP(1, 1),
+		D_MIDI_JACK_EP(USB_ENDPOINT_IN(MIDI_ENDPOINT_IN),USB_ENDPOINT_TYPE_BULK,MIDI_BUFFER_SIZE),
+		D_MIDI_AC_JACK_EP (1, 3)
+	};
+	return USB_SendControl(0, &_midiInterface, sizeof(_midiInterface));
 }
 
-bool MIDI_Setup(USBSetup& setup, uint8_t i)
+bool MIDI_::setup(USBSetup& setup __attribute__((unused)))
 {
 	//Support requests here if needed. Typically these are optional
 	return false;
 }
 
-int MIDI_GetDescriptor(int8_t t)
+int MIDI_::getDescriptor(USBSetup& setup __attribute__((unused)))
 {
 	return 0;
+}
+
+uint8_t MIDI_::getShortName(char* name)
+{
+	memcpy(name, "MIDI", 4);
+	return 4;
 }
 
 void MIDI_::accept(void)
@@ -183,49 +175,9 @@ void MIDI_::sendMIDI(midiEventPacket_t event)
 	write(data, 4);
 }
 
-MIDI_::MIDI_(void)
+MIDI_::MIDI_(void) : PluggableUSBModule(2, 2, epType)
 {
-	static EPTYPE_DESCRIPTOR_SIZE endpointType[2];
-
-	endpointType[0] = EP_TYPE_BULK_OUT_MIDI;	// MIDI_ENDPOINT_OUT
-	endpointType[1] = EP_TYPE_BULK_IN_MIDI;		// MIDI_ENDPOINT_IN
-
-	static PUSBCallbacks cb = {
-		.setup = &MIDI_Setup,
-		.getInterface = &MIDI_GetInterface,
-		.getDescriptor = &MIDI_GetDescriptor,
-		.numEndpoints = 2,
-		.numInterfaces = 2,
-		.endpointType = endpointType,
-	};
-
-	static PUSBListNode node(&cb);
-
-	MIDI_ENDPOINT_OUT = PUSB_AddFunction(&node, &MIDI_AC_INTERFACE);
-	MIDI_ENDPOINT_IN =  MIDI_ENDPOINT_OUT + 1;
-	MIDI_INTERFACE = MIDI_AC_INTERFACE + 1;
-
-	_midiInterface =
-	{
-		D_IAD(MIDI_AC_INTERFACE, 2, MIDI_AUDIO, MIDI_AUDIO_CONTROL, 0),
-		D_INTERFACE(MIDI_AC_INTERFACE,0,MIDI_AUDIO,MIDI_AUDIO_CONTROL,0),
-		D_AC_INTERFACE(0x1, MIDI_INTERFACE),
-		D_INTERFACE(MIDI_INTERFACE,2, MIDI_AUDIO,MIDI_STREAMING,0),
-		D_AS_INTERFACE,
-		D_MIDI_INJACK(MIDI_JACK_EMD, 0x1),
-		D_MIDI_INJACK(MIDI_JACK_EXT, 0x2),
-		D_MIDI_OUTJACK(MIDI_JACK_EMD, 0x3, 1, 2, 1),
-		D_MIDI_OUTJACK(MIDI_JACK_EXT, 0x4, 1, 1, 1),
-		D_MIDI_JACK_EP(USB_ENDPOINT_OUT(MIDI_ENDPOINT_OUT),USB_ENDPOINT_TYPE_BULK,512),
-		D_MIDI_AC_JACK_EP(1, 1),
-		D_MIDI_JACK_EP(USB_ENDPOINT_IN(MIDI_ENDPOINT_IN),USB_ENDPOINT_TYPE_BULK,512),
-		D_MIDI_AC_JACK_EP (1, 3)
-	};
+	epType[0] = EP_TYPE_BULK_OUT_MIDI;	// MIDI_ENDPOINT_OUT
+	epType[1] = EP_TYPE_BULK_IN_MIDI;		// MIDI_ENDPOINT_IN
+	PluggableUSB().plug(this);
 }
-
-int8_t MIDI_::begin()
-{
-}
-
-
-MIDI_ MidiUSB;

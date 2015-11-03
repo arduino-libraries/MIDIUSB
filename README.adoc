@@ -21,7 +21,7 @@ Port `20` is the one we'll use in the following examples.
 
 Start `fluidsynth` inside a shell with a soundbank 
 ```bash
-fluidsynth --server --audio-driver=alsa -udio.alsa.device=hw:0 ~/Synth.SF2
+fluidsynth --server --audio-driver=alsa -o audio.alsa.device=hw:0 ~/Synth.SF2
 ```
 
 In another shell, execute 

@@ -8,6 +8,14 @@
 #include <stdint.h>
 #include <Arduino.h>
 
+#if ARDUINO < 10606
+#error MIDIUSB requires Arduino IDE 1.6.6 or greater. Please update your IDE.
+#endif
+
+#if !defined(USBCON)
+#error MIDIUSB can only be used with an USB MCU.
+#endif
+
 #if defined(USBCON)
 
 typedef struct

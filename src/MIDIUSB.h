@@ -33,6 +33,7 @@ typedef struct
 #define EP_TYPE_BULK_OUT_MIDI		EP_TYPE_BULK_OUT
 #define EP_TYPE_BULK_IN_MIDI		EP_TYPE_BULK_IN
 #define MIDI_BUFFER_SIZE			64
+#define is_write_enabled(x)			(1)
 
 #else
 
@@ -41,11 +42,12 @@ typedef struct
 #define MIDI_BUFFER_SIZE			512
 
 #if defined(ARDUINO_ARCH_SAM)
-#define USB_SendControl 	USBD_SendControl
-#define USB_Available 		USBD_Available
-#define USB_Recv 			USBD_Recv
-#define USB_Send 			USBD_Send
-#define USB_Flush 			USBD_Flush
+#define USB_SendControl         USBD_SendControl
+#define USB_Available           USBD_Available
+#define USB_Recv                USBD_Recv
+#define USB_Send                USBD_Send
+#define USB_Flush               USBD_Flush
+#define is_write_enabled(x)     Is_udd_write_enabled(x)
 
 #define EP_TYPE_BULK_IN_MIDI		(UOTGHS_DEVEPTCFG_EPSIZE_512_BYTE | \
 									UOTGHS_DEVEPTCFG_EPDIR_IN |         \
@@ -62,11 +64,12 @@ typedef struct
 #endif
 
 #if defined(__SAMD21G18A__)
-#define USB_SendControl		USBDevice.sendControl
-#define USB_Available		USBDevice.available
-#define USB_Recv 			USBDevice.recv
-#define USB_Send 			USBDevice.send
-#define USB_Flush 			USBDevice.flush
+#define USB_SendControl         USBDevice.sendControl
+#define USB_Available           USBDevice.available
+#define USB_Recv                USBDevice.recv
+#define USB_Send                USBDevice.send
+#define USB_Flush               USBDevice.flush
+#define is_write_enabled(x)     (1)
 
 #define EP_TYPE_BULK_IN_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_IN(0);
 #define EP_TYPE_BULK_OUT_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_OUT(0);

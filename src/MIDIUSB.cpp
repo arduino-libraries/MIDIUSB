@@ -153,14 +153,23 @@ size_t MIDI_::write(const uint8_t *buffer, size_t size)
 	// open connection isn't broken cleanly (cable is yanked out, host dies
 	// or locks up, or host virtual serial port hangs)
 
-	int r = USB_Send(MIDI_TX, buffer, size);
+	// first, check the TX buffer to see if it's ready for writing.
+	// USB_Send() may block if there's no one listening on the other end.
+	// in that case, we don't want to block waiting for someone to connect,
+	// because that would freeze the whole sketch
+	// instead, we'll just drop the packets and hope the caller figures it out.
+	if (is_write_enabled(MIDI_TX))
+	{
 
-	if (r > 0)
-	{
-		return r;
-	} else
-	{
-		return 0;
+		int r = USB_Send(MIDI_TX, buffer, size);
+
+		if (r > 0)
+		{
+			return r;
+		} else
+		{
+			return 0;
+		}
 	}
 	return 0;
 }

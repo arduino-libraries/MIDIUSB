@@ -6,7 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-MidiUSB	KEYWORD1
+MIDIUSB	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

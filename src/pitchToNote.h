@@ -68,7 +68,7 @@
 #define pitchB2  47
 #define pitchB2b 46
 #define pitchA2  45
-#define pitchA6b 44
+#define pitchA2b 44
 #define pitchG2  43
 #define pitchG2b 42
 #define pitchF2  41

@@ -70,7 +70,7 @@
 #define freqB2  123.471
 #define freqB2b 116.541
 #define freqA2  110.000
-#define freqA6b 103.826
+#define freqA2b 103.826
 #define freqG2  97.999
 #define freqG2b 92.499
 #define freqF2  87.307

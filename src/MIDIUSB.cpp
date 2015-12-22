@@ -115,19 +115,22 @@ uint32_t MIDI_::available(void)
 
 midiEventPacket_t MIDI_::read(void)
 {
-	ring_bufferMIDI *buffer = &midi_rx_buffer;
-	midiEventPacket_t c = buffer->midiEvent[buffer->tail];
+        midiEventPacket_t c;
+	ring_bufferMIDI   *buffer = &midi_rx_buffer;
 
-	if (USB_Available(MIDI_RX)) {
-		accept();
-		c = buffer->midiEvent[buffer->tail];
+	if(((uint32_t)(MIDI_BUFFER_SIZE + buffer->head - buffer->tail) % MIDI_BUFFER_SIZE) > 0) {
+	    c = buffer->midiEvent[buffer->tail];
 	} else {
-		c.header = 0;
-		c.byte1 = 0;
-		c.byte2 = 0;
-		c.byte3 = 0;
+            if (USB_Available(MIDI_RX)) {
+	        accept();
+	        c = buffer->midiEvent[buffer->tail];
+	    } else {
+	        c.header = 0;
+	        c.byte1 = 0;
+	        c.byte2 = 0;
+	        c.byte3 = 0;
+	    }
 	}
-
 	// if the head isn't ahead of the tail, we don't have any characters
 	if (buffer->head != buffer->tail)
 	{

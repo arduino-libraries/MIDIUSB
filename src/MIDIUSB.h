@@ -29,8 +29,8 @@ typedef struct
 #include "PluggableUSB.h"
 
 #define EPTYPE_DESCRIPTOR_SIZE		uint8_t
-#define EP_TYPE_BULK_IN_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_IN(0);
-#define EP_TYPE_BULK_OUT_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_OUT(0);
+#define EP_TYPE_BULK_IN_MIDI 		EP_TYPE_BULK_IN
+#define EP_TYPE_BULK_OUT_MIDI 		EP_TYPE_BULK_OUT
 #define MIDI_BUFFER_SIZE			USB_EP_SIZE
 #define is_write_enabled(x)			(1)
 

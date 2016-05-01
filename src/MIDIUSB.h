@@ -1,7 +1,9 @@
 //================================================================================
 //================================================================================
-//	MIDI USB class
 
+/**
+	MIDI USB class
+*/
 #ifndef MIDIUSB_h
 #define MIDIUSB_h
 
@@ -88,7 +90,7 @@ typedef struct
 #define MIDI_JACK_EXT							0X02
 
 _Pragma("pack(1)")
-
+/// Midi Audio Control Interface Descriptor
 typedef struct
 {
 	uint8_t len;		// 9
@@ -123,6 +125,7 @@ typedef struct
 	uint8_t jackStrIndex;
 } MIDIJackOutDescriptor;
 
+/// MIDI Jack EndPoint Descriptor, common to midi in and out jacks.
 typedef struct
 {
 	EndpointDescriptor len;		// 9
@@ -130,6 +133,7 @@ typedef struct
 	uint8_t sync;
 } MIDI_EPDescriptor;
 
+/// MIDI Jack  EndPoint AudioControl Descriptor, common to midi in and out ac jacks.
 typedef struct
 {
 	uint8_t len;		// 5
@@ -139,6 +143,7 @@ typedef struct
 	uint8_t jackID;
 } MIDI_EP_ACDescriptor;
 
+/// MIDI Audio Stream Descriptor Interface
 typedef struct
 {
 	uint8_t len;		// 9
@@ -148,6 +153,7 @@ typedef struct
 	uint16_t wTotalLength;
 } MIDI_ASInterfaceDescriptor;
 
+/// Top Level MIDI Descriptor used to create a Midi Interface instace \see MIDI_::getInterface()
 typedef struct
 {
 	//	IAD
@@ -192,32 +198,53 @@ typedef struct
 #define D_CDCCS(_subtype,_d0,_d1)	{ 5, 0x24, _subtype, _d0, _d1 }
 #define D_CDCCS4(_subtype,_d0)		{ 4, 0x24, _subtype, _d0 }
 
+#ifndef DOXYGEN_ARD
+// the following would confuse doxygen documentation tool, so skip in that case for autodoc build
 _Pragma("pack()")
 
 #define WEAK __attribute__ ((weak))
 
+#endif
+
+/**
+ 	 Concrete MIDI implementation of a PluggableUSBModule
+ 	 By default, will define one midi in and one midi out enpoints.
+ */
 class MIDI_ : public PluggableUSBModule
 {
 // private:
 // 	RingBuffer *_midi_rx_buffer;
 private:
-	void accept(void);
-	EPTYPE_DESCRIPTOR_SIZE epType[2];
+	void accept(void); 					///< Accepts a midi packet, \see MIDI_::read()
+	EPTYPE_DESCRIPTOR_SIZE epType[2];   ///< Container that defines the two bulk MIDI IN/OUT endpoints types
 
 protected:
   // Implementation of the PUSBListNode
+
+  /// Creates a MIDIDescriptor midi interface and sollicit USBDevice to send control to it.
+  ///   \see USBDevice::SendControl()
   int getInterface(uint8_t* interfaceNum);
+  /// Current implementation just returns 0
   int getDescriptor(USBSetup& setup);
+  /// Optional interface usb setup callback, current implementation returns false
   bool setup(USBSetup& setup);
+  /// MIDI Device short name, defaults to "MIDI" and returns a length of 4 chars
   uint8_t getShortName(char* name);
 
 public:
+	/// Creates a MIDI USB device with 2 endpoints
 	MIDI_(void);
+	/// Returns the number of bytes currently available from RX
 	uint32_t available(void);
+	/// Reads a new MIDI message from USB
 	midiEventPacket_t read(void);
+	/// Flushes TX midi channel
 	void flush(void);
+	/// Sends a MIDI message to USB
 	void sendMIDI(midiEventPacket_t event);
+	/// Sends a MIDI buffer of length size to USB
 	size_t write(const uint8_t *buffer, size_t size);
+	/// NIY
 	operator bool();
 };
 extern MIDI_ MidiUSB;

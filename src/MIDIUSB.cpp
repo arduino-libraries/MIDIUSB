@@ -95,7 +95,7 @@ void MIDI_::accept(void)
 		}
 		c = USB_Recv(MIDI_RX, &event, sizeof(event) );
 
-		//MIDI paacket has to be 4 bytes
+		//MIDI packet has to be 4 bytes
 		if(c < 4)
 			return;
 		buffer->midiEvent[buffer->head] = event;

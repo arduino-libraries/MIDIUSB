@@ -80,28 +80,42 @@ void MIDI_::accept(void)
 	ring_bufferMIDI *buffer = &midi_rx_buffer;
 	uint32_t i = (uint32_t)(buffer->head+1) % MIDI_BUFFER_SIZE;
 
+	// The USB_Recv() call apparently tosses away available incoming data that isn't fully read
+	// so you must provide it with enough space to prevent dropped MIDI events, because there can be more than one
+	// MIDI packet available per USB_Recv() call.
+	// Here we support up to 8 events per recv (observed hi-rate midi streams can require this,
+	// but it could be bigger with sysex dumps, so this might need to be raised even more)
+	midiEventPacket_t event[8];
+
 	// if we should be storing the received character into the location
 	// just before the tail (meaning that the head would advance to the
 	// current location of the tail), we're about to overflow the buffer
 	// and so we don't write the character or advance the head.
 	while (i != buffer->tail) {
 		int c;
-		midiEventPacket_t event;
 		if (!USB_Available(MIDI_RX)) {
 #if defined(ARDUINO_ARCH_SAM)
 			udd_ack_fifocon(MIDI_RX);
 #endif
-			//break;
+			break; // appears to be needed now that we have larger possible reads
 		}
-		c = USB_Recv(MIDI_RX, &event, sizeof(event) );
+		c = USB_Recv(MIDI_RX, event, sizeof(event) );
 
-		//MIDI paacket has to be 4 bytes
-		if(c < 4)
+		if(c < 4) {
 			return;
-		buffer->midiEvent[buffer->head] = event;
-		buffer->head = i;
+		}
 
-		i = (i + 1) % MIDI_BUFFER_SIZE;
+		// each MIDI packet is 4 bytes
+		// but there could be more than one midi packet per receive
+		int pos = 0 ;
+		while (i != buffer->tail && c >= 4) {
+			buffer->midiEvent[buffer->head] = event[pos];
+			buffer->head = i;
+
+			i = (i + 1) % MIDI_BUFFER_SIZE;
+			c -= 4;
+			++pos;
+		}
 	}
 }
 

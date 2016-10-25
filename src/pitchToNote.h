@@ -94,7 +94,7 @@
 #define pitchB0  23
 #define pitchB0b 22
 #define pitchA0  21
-
+/// Full 88 key range note pitch high to low midi byte value mapping array
 const int notePitch[] = {pitchC8,
                                pitchB7, pitchB7b, pitchA7, pitchA7b, pitchG7, pitchG7b, pitchF7, pitchE7, pitchE7b, pitchD7, pitchD7b, pitchC7,
                                pitchB6, pitchB6b, pitchA6, pitchA6b, pitchG6, pitchG6b, pitchF6, pitchE6, pitchE6b, pitchD6, pitchD6b, pitchC6,

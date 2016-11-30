@@ -17,10 +17,10 @@
 #include "MIDIUSB.h"
 
 #define MIDI_AC_INTERFACE 	pluggedInterface	// MIDI AC Interface
-#define MIDI_INTERFACE 		pluggedInterface+1
+#define MIDI_INTERFACE 		((uint8_t)(pluggedInterface+1))
 #define MIDI_FIRST_ENDPOINT pluggedEndpoint
 #define MIDI_ENDPOINT_OUT	pluggedEndpoint
-#define MIDI_ENDPOINT_IN	pluggedEndpoint+1
+#define MIDI_ENDPOINT_IN	((uint8_t)(pluggedEndpoint+1))
 
 #define MIDI_RX MIDI_ENDPOINT_OUT
 #define MIDI_TX MIDI_ENDPOINT_IN

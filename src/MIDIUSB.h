@@ -34,7 +34,7 @@ typedef struct
 #define EP_TYPE_BULK_IN_MIDI 		EP_TYPE_BULK_IN
 #define EP_TYPE_BULK_OUT_MIDI 		EP_TYPE_BULK_OUT
 #define MIDI_BUFFER_SIZE			USB_EP_SIZE
-#define is_write_enabled(x)			(1)
+#define is_write_enabled(x)			USB_Available(x)
 
 #elif defined(ARDUINO_ARCH_SAM)
 

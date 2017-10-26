@@ -2,6 +2,8 @@
 
 This library allows an Arduino board with USB capabilites to act as a MIDI instrument over USB. The library is based on PluggableUSB, so is only compatible with IDE 1.6.6 and nightly builds (AVR core > 1.6.8, SAM core > 1.6.4, SAMD core > 1.6.1)
 
+Furthermore, since PluggableUSB only targets boards with native USB capabilities, this library only supports these boards (eg. Leonardo, Micro, Due, Zero and so on)
+
 For more information about this library please visit us at
 http://www.arduino.cc/en/Reference/MIDIUSB
 

@@ -18,13 +18,7 @@
 #error MIDIUSB can only be used with an USB MCU.
 #endif
 
-typedef struct
-{
-	uint8_t header;
-	uint8_t byte1;
-	uint8_t byte2;
-	uint8_t byte3;
-}midiEventPacket_t;
+#include "MIDIUSB_Defs.h"
 
 #if defined(ARDUINO_ARCH_AVR)
 

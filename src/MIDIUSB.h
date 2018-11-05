@@ -18,7 +18,7 @@
 #error MIDIUSB can only be used with an USB MCU.
 #endif
 
-#include "./MIDIUSB_Defs.h"
+#include "MIDIUSB_Defs.h"
 
 #if defined(ARDUINO_ARCH_AVR)
 

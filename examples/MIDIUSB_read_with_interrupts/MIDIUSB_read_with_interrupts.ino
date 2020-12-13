@@ -1,6 +1,9 @@
 /*
  * MIDIUSB_test.ino
  *
+ * Modifed to use interrupts. 12/12/2020 
+ * Doug Clauder https://github.com/studiohsoftware
+ *
  * Created: 4/6/2015 10:47:08 AM
  * Author: gurbrinder grewal
  * Modified by Arduino LLC (2015)

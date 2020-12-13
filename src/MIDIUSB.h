@@ -224,6 +224,8 @@ protected:
   bool setup(USBSetup& setup);
   /// MIDI Device short name, defaults to "MIDI" and returns a length of 4 chars
   uint8_t getShortName(char* name);
+  void (*interruptCallback)(int /* ep */);
+  virtual void handleEndpoint(int ep) { if (interruptCallback) interruptCallback(ep); }
 
 public:
 	/// Creates a MIDI USB device with 2 endpoints
@@ -240,6 +242,8 @@ public:
 	size_t write(const uint8_t *buffer, size_t size);
 	/// NIY
 	operator bool();
+	void attachInterrupt(void(*function)(int /* ep */)){interruptCallback = function;};
+
 };
 extern MIDI_ MidiUSB;
 

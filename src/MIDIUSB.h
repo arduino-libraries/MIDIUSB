@@ -56,9 +56,13 @@
 
 #elif defined(ARDUINO_ARCH_SAMD)
 
+#if defined(ARDUINO_API_VERSION)
+#include "api/PluggableUSB.h"
+#define EPTYPE_DESCRIPTOR_SIZE		unsigned int
+#else
 #include "USB/PluggableUSB.h"
-
 #define EPTYPE_DESCRIPTOR_SIZE		uint32_t
+#endif
 #define EP_TYPE_BULK_IN_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_IN(0);
 #define EP_TYPE_BULK_OUT_MIDI 		USB_ENDPOINT_TYPE_BULK | USB_ENDPOINT_OUT(0);
 #define MIDI_BUFFER_SIZE			EPX_SIZE

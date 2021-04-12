@@ -1,0 +1,82 @@
+name: Compile Examples
+
+# See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
+on:
+  push:
+    paths:
+      - ".github/workflows/compile-examples.yml"
+      - "examples/**"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/compile-examples.yml"
+      - "examples/**"
+      - "src/**"
+  schedule:
+    # Run every Tuesday at 8 AM UTC to catch breakage caused by changes to external resources (libraries, platforms).
+    - cron: "0 8 * * TUE"
+  workflow_dispatch:
+  repository_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.board.fqbn }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        board:
+          - fqbn: arduino:avr:leonardo
+            platforms: |
+              - name: arduino:avr
+            tone: true
+          - fqbn: arduino:sam:arduino_due_x_dbg
+            platforms: |
+              - name: arduino:sam
+            # Bug report: https://github.com/arduino/ArduinoCore-sam/issues/24
+            # Change the value to true once it is fixed.
+            tone: false
+          - fqbn: arduino:samd:mkrzero
+            platforms: |
+              - name: arduino:samd
+            tone: true
+          - fqbn: arduino:samd:nano_33_iot
+            platforms: |
+              - name: arduino:samd
+            tone: true
+
+        # Make board type-specific customizations to the matrix jobs
+        include:
+          - board:
+              tone: true
+            sketch-paths: |
+              - examples/MIDIUSB_buzzer
+          - board:
+              tone: false
+            sketch-paths: ""
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Compile examples
+        uses: arduino/compile-sketches@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          libraries: |
+            # Install the library from the local path.
+            - source-path: ./
+            # Additional library dependencies can be listed here.
+            # See: https://github.com/arduino/compile-sketches#libraries
+          sketch-paths: |
+            # Examples to compile for all boards
+            - examples/MIDIUSB_clock
+            - examples/MIDIUSB_loop
+            - examples/MIDIUSB_read
+            - examples/MIDIUSB_read
+            # Board-specific examples
+            ${{ matrix.sketch-paths }}

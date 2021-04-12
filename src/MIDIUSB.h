@@ -123,7 +123,7 @@ typedef struct
 	uint8_t jackStrIndex;
 } MIDIJackOutDescriptor;
 
-/// MIDI Jack EndPoint Descriptor, common to midi in and out jacks.
+/// MIDI Jack EndPoint Descriptor, common to MIDI in and out jacks.
 typedef struct
 {
 	EndpointDescriptor len;		// 9
@@ -131,7 +131,7 @@ typedef struct
 	uint8_t sync;
 } MIDI_EPDescriptor;
 
-/// MIDI Jack  EndPoint AudioControl Descriptor, common to midi in and out ac jacks.
+/// MIDI Jack EndPoint AudioControl Descriptor, common to MIDI in and out ac jacks.
 typedef struct
 {
 	uint8_t len;		// 5
@@ -151,7 +151,7 @@ typedef struct
 	uint16_t wTotalLength;
 } MIDI_ASInterfaceDescriptor;
 
-/// Top Level MIDI Descriptor used to create a Midi Interface instace \see MIDI_::getInterface()
+/// Top Level MIDI Descriptor used to create a MIDI Interface instance \see MIDI_::getInterface()
 typedef struct
 {
 	//	IAD
@@ -197,7 +197,7 @@ typedef struct
 #define D_CDCCS4(_subtype,_d0)		{ 4, 0x24, _subtype, _d0 }
 
 #ifndef DOXYGEN_ARD
-// the following would confuse doxygen documentation tool, so skip in that case for autodoc build
+// the following would confuse the Doxygen documentation tool, so skip in that case for autodoc build
 _Pragma("pack()")
 
 #define WEAK __attribute__ ((weak))
@@ -206,25 +206,25 @@ _Pragma("pack()")
 
 /**
  	 Concrete MIDI implementation of a PluggableUSBModule
- 	 By default, will define one midi in and one midi out enpoints.
+ 	 By default, will define one MIDI in and one MIDI out endpoints.
  */
 class MIDI_ : public PluggableUSBModule
 {
 // private:
 // 	RingBuffer *_midi_rx_buffer;
 private:
-	void accept(void); 					///< Accepts a midi packet, \see MIDI_::read()
+	void accept(void); 					///< Accepts a MIDI packet, \see MIDI_::read()
 	EPTYPE_DESCRIPTOR_SIZE epType[2];   ///< Container that defines the two bulk MIDI IN/OUT endpoints types
 
 protected:
   // Implementation of the PUSBListNode
 
-  /// Creates a MIDIDescriptor midi interface and sollicit USBDevice to send control to it.
+  /// Creates a MIDIDescriptor MIDI interface and solicits USBDevice to send control to it.
   ///   \see USBDevice::SendControl()
   int getInterface(uint8_t* interfaceNum);
   /// Current implementation just returns 0
   int getDescriptor(USBSetup& setup);
-  /// Optional interface usb setup callback, current implementation returns false
+  /// Optional interface USB setup callback, current implementation returns false
   bool setup(USBSetup& setup);
   /// MIDI Device short name, defaults to "MIDI" and returns a length of 4 chars
   uint8_t getShortName(char* name);
@@ -236,7 +236,7 @@ public:
 	uint32_t available(void);
 	/// Reads a new MIDI message from USB
 	midiEventPacket_t read(void);
-	/// Flushes TX midi channel
+	/// Flushes TX MIDI channel
 	void flush(void);
 	/// Sends a MIDI message to USB
 	void sendMIDI(midiEventPacket_t event);

@@ -1,3 +1,7 @@
+# MIDIUSB library
+
+## Functions
+
 ### `MidiUSB.read()`
 
 This functions reads data from the USB and packages it into a MIDI packet (midiEventPacket_t struct ). For example, you can use this function to act as a MIDI IN device, getting notes from the PC and transforming them into audible music.

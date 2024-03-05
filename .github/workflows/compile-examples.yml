@@ -35,20 +35,24 @@ jobs:
             platforms: |
               - name: arduino:avr
             tone: true
+            artifact-name-suffix: arduino-avr-leonardo
           - fqbn: arduino:sam:arduino_due_x_dbg
             platforms: |
               - name: arduino:sam
             # Bug report: https://github.com/arduino/ArduinoCore-sam/issues/24
             # Change the value to true once it is fixed.
             tone: false
+            artifact-name-suffix: arduino-sam-arduino_due_x_dbg
           - fqbn: arduino:samd:mkrzero
             platforms: |
               - name: arduino:samd
             tone: true
+            artifact-name-suffix: arduino-samd-mkrzero
           - fqbn: arduino:samd:nano_33_iot
             platforms: |
               - name: arduino:samd
             tone: true
+            artifact-name-suffix: arduino-samd-nano_33_iot
 
         # Make board type-specific customizations to the matrix jobs
         include:
@@ -91,4 +95,4 @@ jobs:
         with:
           if-no-files-found: error
           path: ${{ env.SKETCHES_REPORTS_PATH }}
-          name: ${{ env.SKETCHES_REPORTS_PATH }}
+          name: sketches-report-${{ matrix.board.artifact-name-suffix }}

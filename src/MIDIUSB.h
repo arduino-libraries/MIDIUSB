@@ -20,7 +20,7 @@
 
 #include "MIDIUSB_Defs.h"
 
-#if defined(ARDUINO_ARCH_AVR)
+#if defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_MEGAAVR)
 
 #include "PluggableUSB.h"
 
